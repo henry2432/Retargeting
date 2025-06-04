@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
 import json
 
@@ -11,11 +11,14 @@ credentials = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials, scope)
 client = gspread.authorize(creds)
-sheet = client.open('Contacts')
+
+# Google Sheets 名稱
+sheet_name = os.getenv('SHEET_NAME', 'Whatsapp Marketing for Walk-in')
+sheet = client.open(sheet_name)
 
 # Wati API 設置
 api_token = os.getenv('WATI_API_TOKEN')
-wati_url = 'https://api.wati.io/api/v1/sendTemplateMessage'
+wati_url = 'https://live-mt-server.wati.io/2601/api/v1/sendTemplateMessage'
 
 # 模板映射
 template_map = {
@@ -34,7 +37,7 @@ for sheet_name in ['Rental', 'VIP']:
     df['Last_Sent_Date'] = df['Last_Sent_Date'].replace('', None)
 
     for index, row in df.iterrows():
-        if row['Sent']:  # 跳過已傳送
+        if row['Sent']:
             continue
         template_name = template_map[sheet_name][0 if row['Language'] == 'en' else 1]
         payload = {
@@ -49,8 +52,8 @@ for sheet_name in ['Rental', 'VIP']:
         headers = {'Authorization': f'Bearer {api_token}'}
         response = requests.post(wati_url, json=payload, headers=headers)
         if response.status_code == 200:
-            # 更新 Google Sheets
             worksheet.update_cell(index + 2, df.columns.get_loc('Sent') + 1, True)
-            worksheet.update_cell(index + 2, df.columns.get_loc('Last_Sent_Date') + 1, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            worksheet.update_cell(index + 2, df.columns.get_loc('Last_Sent_Date') + 1, 
+                                 datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d %H:%M:%S'))
         else:
             print(f"Failed to send to {row['Phone']}: {response.text}")
