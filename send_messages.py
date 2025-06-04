@@ -9,13 +9,13 @@ import time
 
 # Google Sheets API 設置
 credentials = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
-scope = ['https://www.googleapis.com/auth/spreadsheets']  # 僅 Sheets API
+scope = ['https://www.googleapis.com/auth/spreadsheets']
 creds = Credentials.from_service_account_info(credentials, scopes=scope)
 client = gspread.authorize(creds)
 
-# Google Sheets 名稱
-sheet_name = os.getenv('SHEET_NAME', 'Whatsapp Marketing for Walk-in')
-sheet = client.open(sheet_name)
+# Google Sheets Spreadsheet ID
+spreadsheet_id = '1dDQCQMipQXzKyxKiljrQjLe6NOwcFOTmGdj-1y7lOp0'
+sheet = client.open_by_key(spreadsheet_id)
 
 # Wati API 設置
 api_token = os.getenv('WATI_API_TOKEN')
@@ -30,7 +30,7 @@ headers = {'Authorization': f'Bearer {api_token}', 'Content-Type': 'application/
 def format_phone(phone):
     phone = str(phone).strip()
     if not phone.startswith('+'):
-        return f'+852{phone}'  # 假設香港區號
+        return f'+{phone}'  # 直接添加 "+"，保留原始號碼
     return phone
 
 # 檢查聯繫人是否存在
