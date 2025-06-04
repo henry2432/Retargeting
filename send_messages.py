@@ -1,15 +1,15 @@
 import pandas as pd
 import requests
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 from datetime import datetime, timezone, timedelta
 import os
 import json
 
-# Google Sheets API 設置
+# Google Sheets API 設置（僅使用 Sheets API）
 credentials = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
-scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_dict(credentials, scope)
+scope = ['https://www.googleapis.com/auth/spreadsheets']  # 僅 Sheets API
+creds = Credentials.from_service_account_info(credentials, scopes=scope)
 client = gspread.authorize(creds)
 
 # Google Sheets 名稱
@@ -20,7 +20,7 @@ sheet = client.open(sheet_name)
 api_token = os.getenv('WATI_API_TOKEN')
 wati_url = 'https://live-mt-server.wati.io/2601/api/v1/sendTemplateMessage'
 
-# 處理 Rental 分頁（僅測試）
+# 處理 Rental 分頁（測試）
 worksheet = sheet.worksheet('Rental')
 data = worksheet.get_all_records()
 df = pd.DataFrame(data)
