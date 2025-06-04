@@ -9,12 +9,12 @@ import time
 
 # Google Sheets API 設置
 credentials = json.loads(os.getenv('GOOGLE_CREDENTIALS'))
-scope = ['https://www.googleapis.com/auth/spreadsheets']
+scope = ['https://www.googleapis.com/auth/spreadsheets']  # 僅 Sheets API
 creds = Credentials.from_service_account_info(credentials, scopes=scope)
 client = gspread.authorize(creds)
 
 # Google Sheets 名稱
-sheet_name = os.getenv('SHEET_NAME', 'Webhook測試')
+sheet_name = os.getenv('SHEET_NAME', 'Whatsapp Marketing for Walk-in')
 sheet = client.open(sheet_name)
 
 # Wati API 設置
@@ -33,7 +33,7 @@ def format_phone(phone):
         return f'+852{phone}'  # 假設香港區號
     return phone
 
-# 檢查聯繫人是否已存在
+# 檢查聯繫人是否存在
 def check_contact_exists(phone):
     response = requests.get(get_contacts_url, headers=headers, params={'phone': phone})
     if response.status_code == 200 and response.json().get('contacts'):
@@ -66,7 +66,7 @@ for index, row in contacts_df.iterrows():
         print(f"Contact {phone} added/updated with AllowBroadcast={allow_broadcast}")
     else:
         print(f"Failed to update contact {phone}: {response.text}")
-    time.sleep(1)  # 避免速率限制
+    time.sleep(1)
 
 # 步驟 2：從 Rental 和 VIP 分頁傳送訊息
 for sheet_name in ['Rental', 'VIP']:
@@ -83,25 +83,24 @@ for sheet_name in ['Rental', 'VIP']:
         phone = format_phone(row['Phone'])
         name = row['Name']
         
-        # 確認聯繫人存在
         if not check_contact_exists(phone):
             print(f"Contact {phone} not found in Wati, skipping message")
             continue
             
         message_payload = {
             'phone': phone,
-            'template_name': 'woocommerce_default',
+            'template_name': 'woocommerce_default_follow_up_v2',
             'parameters': {
                 'name': name,
-                'shop_name': 'Kayarine Store Test'  # 硬編碼
+                'shop_name': 'Kayarine Store'  # 硬編碼
             }
         }
         response = requests.post(send_message_url, json=message_payload, headers=headers)
         if response.status_code == 200:
-            worksheet.update_cell(index + 2, df.columns.get_loc('Phone') + 1, True)
-            worksheet.update_cell(index + 2, df.columns.get_loc('Last_Sent') + 1,
-                                 datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            worksheet.update_cell(index + 2, df.columns.get_loc('Sent') + 1, True)
+            worksheet.update_cell(index + 2, df.columns.get_loc('Last_Sent_Date') + 1, 
+                                 datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d %H:%M:%S'))
             print(f"Message sent to {phone} from {sheet_name}")
         else:
             print(f"Failed to send to {phone} from {sheet_name}: {response.text}")
-        time.sleep(1)  # 避免速率限制
+        time.sleep(1)
