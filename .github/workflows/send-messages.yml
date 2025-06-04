@@ -1,6 +1,6 @@
 name: Send WhatsApp Messages
 on:
-  workflow_dispatch:  # 僅手動觸發
+  workflow_dispatch:
 jobs:
   send-messages:
     runs-on: ubuntu-latest
