@@ -1,8 +1,6 @@
 name: Send WhatsApp Messages
 on:
-  schedule:
-    - cron: '0 0 * * *'  # 每日 UTC 00:00 (HKT 08:00)
-  workflow_dispatch:  # 允許手動觸發
+  workflow_dispatch:  # 僅手動觸發
 jobs:
   send-messages:
     runs-on: ubuntu-latest
@@ -21,4 +19,5 @@ jobs:
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           WATI_API_TOKEN: ${{ secrets.WATI_API_TOKEN }}
+          SHEET_NAME: ${{ secrets.SHEET_NAME }}
         run: python send_messages.py
