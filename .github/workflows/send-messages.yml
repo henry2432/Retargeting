@@ -19,5 +19,4 @@ jobs:
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           WATI_API_TOKEN: ${{ secrets.WATI_API_TOKEN }}
-          SHEET_NAME: ${{ secrets.SHEET_NAME }}
         run: python send_messages.py
